@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.reminderdatabase.adapters.ReminderAdapter
+import com.example.reminderdatabase.models.Reminder
 import com.example.reminderdatabase.repositories.ReminderRepository
 
 import kotlinx.android.synthetic.main.activity_main.*
@@ -38,7 +40,8 @@ class MainActivity : AppCompatActivity() {
 
     reminders = arrayListOf()
 
-    reminderAdapter = ReminderAdapter(reminders)
+    reminderAdapter =
+      ReminderAdapter(reminders)
 
     fab.setOnClickListener {
       startAddActivity()

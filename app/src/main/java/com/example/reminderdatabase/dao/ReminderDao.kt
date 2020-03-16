@@ -1,7 +1,7 @@
 package com.example.reminderdatabase.dao
 
 import androidx.room.*
-import com.example.reminderdatabase.Reminder
+import com.example.reminderdatabase.models.Reminder
 
 @Dao
 interface ReminderDao {

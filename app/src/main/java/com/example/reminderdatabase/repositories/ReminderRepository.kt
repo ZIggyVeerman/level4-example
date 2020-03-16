@@ -1,7 +1,7 @@
 package com.example.reminderdatabase.repositories
 
 import android.content.Context
-import com.example.reminderdatabase.Reminder
+import com.example.reminderdatabase.models.Reminder
 import com.example.reminderdatabase.ReminderRoomDatabase
 import com.example.reminderdatabase.dao.ReminderDao
 

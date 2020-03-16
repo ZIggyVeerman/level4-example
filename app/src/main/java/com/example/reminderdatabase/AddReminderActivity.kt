@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.reminderdatabase.models.Reminder
 import kotlinx.android.synthetic.main.activity_add_reminder.*
 
 import kotlinx.android.synthetic.main.content_add_reminder.*
@@ -27,7 +28,8 @@ class AddReminderActivity : AppCompatActivity() {
 
   private fun onSaveClick() {
     if (etAddReminder.text.toString().isNotBlank()) {
-      val reminder = Reminder(etAddReminder.text.toString())
+      val reminder =
+        Reminder(etAddReminder.text.toString())
       val resultIntent = Intent()
       resultIntent.putExtra(EXTRA_REMINDER, reminder)
       setResult(Activity.RESULT_OK, resultIntent)
