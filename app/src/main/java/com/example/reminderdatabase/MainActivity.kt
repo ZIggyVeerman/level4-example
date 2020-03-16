@@ -11,9 +11,14 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.reminderdatabase.repositories.ReminderRepository
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 const val ADD_REMINDER_REQUEST_CODE = 100
 
@@ -21,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
   private lateinit var reminders: ArrayList<Reminder>
   private lateinit var reminderAdapter: ReminderAdapter
+  private lateinit var reminderRepository: ReminderRepository
 
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,19 +34,17 @@ class MainActivity : AppCompatActivity() {
     setContentView(R.layout.activity_main)
     setSupportActionBar(toolbar)
 
+    reminderRepository = ReminderRepository(this)
 
-    reminders = arrayListOf(
-      Reminder("iets")
-    )
+    reminders = arrayListOf()
 
     reminderAdapter = ReminderAdapter(reminders)
 
-    initViews()
     fab.setOnClickListener {
-
       startAddActivity()
-
     }
+
+    initViews()
   }
 
   private fun startAddActivity() {
@@ -52,8 +56,14 @@ class MainActivity : AppCompatActivity() {
     // Initialize the recycler view with a linear layout manager, adapter
     rvReminders.layoutManager = LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
     rvReminders.adapter = reminderAdapter
-    rvReminders.addItemDecoration(DividerItemDecoration(this@MainActivity, DividerItemDecoration.VERTICAL))
+    rvReminders.addItemDecoration(
+      DividerItemDecoration(
+        this@MainActivity,
+        DividerItemDecoration.VERTICAL
+      )
+    )
     createItemTouchHelper().attachToRecyclerView(rvReminders)
+    getRemindersFromDatabase()
   }
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -72,57 +82,75 @@ class MainActivity : AppCompatActivity() {
     }
   }
 
+  private fun getRemindersFromDatabase() {
+    CoroutineScope(Dispatchers.Main).launch {
+      val reminders = withContext(Dispatchers.IO) {
+        reminderRepository.getAllReminders()
+      }
+      this@MainActivity.reminders.clear()
+      this@MainActivity.reminders.addAll(reminders)
+      reminderAdapter.notifyDataSetChanged()
+    }
+  }
+
+
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
 
     if (resultCode == Activity.RESULT_OK) {
       when (requestCode) {
         ADD_REMINDER_REQUEST_CODE -> {
-          data?.let {saveData ->
+          data?.let { saveData ->
             val reminder = saveData.getParcelableExtra<Reminder>(EXTRA_REMINDER)
-            reminder?.let {saveReminder ->
-              reminders.add(saveReminder)
-              reminderAdapter.notifyDataSetChanged()
+            reminder?.let { saveReminder ->
+              CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.IO) {
+                  reminderRepository.insertReminder(saveReminder)
+                }
+                getRemindersFromDatabase()
+              }
             } ?: run {
-              Log.e("saveReminder", "Something went wrong with adding a Reminder")
+              Log.e("saveData", "Something went wrong with saving the data from saveReminder");
             }
-          } ?: run {
-            Log.e("saveData", "Something went wrong with saving the data from saveReminder");
-          }
 
+          }
         }
       }
     }
   }
 
-  /**
-   * Create a touch helper to recognize when a user swipes an item from a recycler view.
-   * An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
-   * and uses callbacks to signal when a user is performing these actions.
-   */
-  private fun createItemTouchHelper(): ItemTouchHelper {
+    /**
+     * Create a touch helper to recognize when a user swipes an item from a recycler view.
+     * An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
+     * and uses callbacks to signal when a user is performing these actions.
+     */
+    private fun createItemTouchHelper(): ItemTouchHelper {
+      // Callback which is used to create the ItemTouch helper. Only enables left swipe.
+      // Use ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) to also enable right swipe.
+      val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
-    // Callback which is used to create the ItemTouch helper. Only enables left swipe.
-    // Use ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) to also enable right swipe.
-    val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+        // Enables or Disables the ability to move items up and down.
+        override fun onMove(
+          recyclerView: RecyclerView,
+          viewHolder: RecyclerView.ViewHolder,
+          target: RecyclerView.ViewHolder
+        ): Boolean {
+          return false
+        }
 
-      // Enables or Disables the ability to move items up and down.
-      override fun onMove(
-        recyclerView: RecyclerView,
-        viewHolder: RecyclerView.ViewHolder,
-        target: RecyclerView.ViewHolder
-      ): Boolean {
-        return false
+        // Callback triggered when a user swiped an item.
+        override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+          val position = viewHolder.adapterPosition
+          val reminderToDelete = reminders[position]
+
+          CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+              reminderRepository.deleteReminder(reminderToDelete)
+            }
+            getRemindersFromDatabase()
+          }
+        }
       }
-
-      // Callback triggered when a user swiped an item.
-      override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-        val position = viewHolder.adapterPosition
-        reminders.removeAt(position)
-        reminderAdapter.notifyDataSetChanged()
-      }
+      return ItemTouchHelper(callback)
     }
-    return ItemTouchHelper(callback)
   }
-
-}
