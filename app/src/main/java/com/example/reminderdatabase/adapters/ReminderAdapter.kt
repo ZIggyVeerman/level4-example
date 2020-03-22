@@ -8,7 +8,8 @@ import com.example.reminderdatabase.R
 import com.example.reminderdatabase.models.Reminder
 import kotlinx.android.synthetic.main.item_reminder.view.*
 
-class ReminderAdapter(private val reminders: List<Reminder>) : RecyclerView.Adapter<ReminderAdapter.ViewHolder>() {
+class ReminderAdapter(private val reminders: List<Reminder>) :
+  RecyclerView.Adapter<ReminderAdapter.ViewHolder>() {
 
   inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 

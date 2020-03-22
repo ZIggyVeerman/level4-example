@@ -19,17 +19,17 @@ abstract class ReminderRoomDatabase : RoomDatabase() {
     private var reminderRoomDatabase: ReminderRoomDatabase? = null
 
     fun getReminderRoomDatabase(context: Context): ReminderRoomDatabase? {
-      if(reminderRoomDatabase != null) return reminderRoomDatabase
+      if (reminderRoomDatabase != null) return reminderRoomDatabase
 
-        synchronized(ReminderRoomDatabase::class.java) {
-          if (reminderRoomDatabase == null) {
-            reminderRoomDatabase = Room.databaseBuilder(
-                context.applicationContext,
-                ReminderRoomDatabase::class.java, DATABASE_NAME
-              )
-              .build()
-          }
+      synchronized(ReminderRoomDatabase::class.java) {
+        if (reminderRoomDatabase == null) {
+          reminderRoomDatabase = Room.databaseBuilder(
+              context.applicationContext,
+              ReminderRoomDatabase::class.java, DATABASE_NAME
+            )
+            .build()
         }
+      }
       return reminderRoomDatabase
     }
   }

@@ -35,8 +35,10 @@ class AddReminderActivity : AppCompatActivity() {
       setResult(Activity.RESULT_OK, resultIntent)
       finish()
     } else {
-      Toast.makeText(this,"The reminder cannot be empty"
-        , Toast.LENGTH_SHORT).show()
+      Toast.makeText(
+        this, "The reminder cannot be empty"
+        , Toast.LENGTH_SHORT
+      ).show()
     }
   }
 }

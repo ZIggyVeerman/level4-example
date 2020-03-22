@@ -16,4 +16,4 @@ data class Reminder(
   @ColumnInfo(name = "id")
   var id: Int? = null
 
-) :Parcelable
+) : Parcelable
